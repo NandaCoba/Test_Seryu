@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model drivers {
+  id                 Int                 @id @default(autoincrement())
+  driver_code        String              @unique @db.VarChar(255)
+  name               String              @db.VarChar(255)
+
+  driver_attendances driver_attendances[]
+  shipment_costs     shipment_costs[]
+
+  @@map("drivers")
+}
+
+model driver_attendances {
+  id                 Int      @id @default(autoincrement())
+  driver_code        String   @db.VarChar(255)
+  attendance_date    DateTime
+  attendance_status  Boolean
+
+  driver             drivers  @relation(fields: [driver_code], references: [driver_code])
+
+  @@unique([driver_code, attendance_date])
+  @@map("driver_attendances")
+}
+
+model shipments {
+  shipment_no      String           @id @db.VarChar(255)
+  shipment_date    DateTime
+  shipment_status  ShipmentStatus
+
+  shipment_costs   shipment_costs[]
+
+  @@map("shipments")
+}
+
+model shipment_costs {
+  id           Int         @id @default(autoincrement())
+  driver_code  String      @db.VarChar(255)
+  shipment_no  String      @db.VarChar(255)
+  total_costs  Decimal
+  cost_status  CostStatus
+
+  driver       drivers     @relation(fields: [driver_code], references: [driver_code])
+  shipment     shipments   @relation(fields: [shipment_no], references: [shipment_no])
+
+  @@unique([driver_code, shipment_no])
+  @@map("shipment_costs")
+}
+
+model variable_configs {
+  key   String @id @db.VarChar(255)
+  value Int
+
+  @@map("variable_configs")
+}
+
+enum ShipmentStatus {
+  RUNNING
+  DONE
+  CANCELLED
+}
+
+enum CostStatus {
+  PENDING
+  CONFIRMED
+  PAID
+}
