@@ -12,12 +12,10 @@ static async GetAllSalaryDriver(req: RequestGetDriverList) {
     let count: any = await DriverServices.GetCountDriver();
 
 
-    const data = query
-  .map((items: any) => {
+    const data = query.map((items: any) => {
     const date = new Date(Number(items.attendance_date));
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-
     return {
       ...items,
       total_pending: parseFloat(items.total_pending),
@@ -26,7 +24,7 @@ static async GetAllSalaryDriver(req: RequestGetDriverList) {
       total_attendance_salary: parseFloat(items.total_attendance_salary),
       total_salary: parseFloat(items.total_salary),
       count_shipment: Number(items.count_shipment),
-      attendance_date: date.toISOString().split('T')[0],
+      attendance_date: items.attendance_date,
       _filter_year: year,
       _filter_month: month,
     };
