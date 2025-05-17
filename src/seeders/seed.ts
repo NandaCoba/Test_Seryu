@@ -7,12 +7,6 @@ import { seedVariableConfigs } from './variable_configs';
 
 
 async function main() {
-  await prisma.shipment_costs.deleteMany();
-  await prisma.driver_attendances.deleteMany();
-  await prisma.shipments.deleteMany();
-  await prisma.drivers.deleteMany();
-  await prisma.variable_configs.deleteMany();
-
   await seedDrivers();
   await seedDriversAttendances();
   await seedShipment();
