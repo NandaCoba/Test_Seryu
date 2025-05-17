@@ -1,8 +1,11 @@
 
 
 export interface RequestGetDriverList {
-    month     : Number
-    year      : Number
-    current   : any
-    page_size : any
+  month?: string;
+  year?: number;
+  current: number;
+  page_size: number;
+  driver_code?: string;
+  status?: string;
+  name?: string;
 }
