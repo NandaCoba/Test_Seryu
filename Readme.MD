@@ -80,7 +80,7 @@ GET /v1/salary/driver/list
 
 Filter by July 2023 (Page 1, 10 items)
 
-GET /v1/salary/driver/list?month=07&year=2023
+GET /v1/salary/driver/list?month=7&year=2024
 
 Paginated results (Page 2, 5 items)
 
