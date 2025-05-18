@@ -109,16 +109,50 @@ static GetAllDriver(req: RequestGetDriverList) {
     LEFT JOIN driver_total_salary dts ON d.driver_code = dts.driver_code
     LEFT JOIN driver_count_shipment dcs ON d.driver_code = dcs.driver_code 
     LEFT JOIN driver_date_time ddt ON d.driver_code = ddt.driver_code
-    ${hasFilter(req.year) || hasFilter(req.month) ? Prisma.sql`
-      WHERE EXISTS (
-        SELECT 1 FROM filtered_shipments fs
-        JOIN shipment_costs sc ON fs.shipment_no = sc.shipment_no
-        WHERE sc.driver_code = d.driver_code
-      ) OR EXISTS (
-        SELECT 1 FROM filtered_attendances fa
-        WHERE fa.driver_code = d.driver_code
-      )
-    ` : Prisma.empty}
+${(hasFilter(req.year) || hasFilter(req.month) || hasFilter(req.driver_code) || hasFilter(req.name)) ? Prisma.sql`
+  WHERE
+    ${(() => {
+      const conditions = [];
+      
+      if (hasFilter(req.year) || hasFilter(req.month)) {
+        conditions.push(Prisma.sql`(
+          EXISTS (
+            SELECT 1 FROM filtered_shipments fs
+            JOIN shipment_costs sc ON fs.shipment_no = sc.shipment_no
+            WHERE sc.driver_code = d.driver_code
+          )
+          OR EXISTS (
+            SELECT 1 FROM filtered_attendances fa
+            WHERE fa.driver_code = d.driver_code
+          )
+        )`);
+      }
+      
+      if (hasFilter(req.driver_code)) {
+        conditions.push(Prisma.sql`d.driver_code = ${req.driver_code}`);
+      }
+      
+      if (hasFilter(req.name)) {
+        conditions.push(Prisma.sql`(
+          d.name = ${req.name} OR  -- Exact match
+          d.name ILIKE ${`${req.name} %`} OR  -- Diawali dengan nama (termasuk dengan tambahan teks setelahnya)
+          d.name ILIKE ${`% ${req.name}`} OR  -- Diakhiri dengan nama
+          d.name ILIKE ${`% ${req.name} %`}  -- Nama sebagai kata terpisah
+        )`);
+      }
+
+      if (conditions.length === 1) {
+        return conditions[0];
+      }
+    
+      if (conditions.length > 1) {
+        return conditions.reduce((acc, sql) => acc ? Prisma.sql`${acc} OR ${sql}` : sql, Prisma.empty);
+      }
+      
+      return Prisma.empty;
+    })()}
+` : Prisma.empty}
+
     ORDER BY d.name ASC
     LIMIT ${req.page_size} OFFSET ${offset};
   `;
